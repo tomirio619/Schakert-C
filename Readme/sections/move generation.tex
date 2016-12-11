@@ -1,0 +1,386 @@
+% !TeX spellcheck = en_US
+\section{Move Generation}
+The non sliding pieces on a chess board are as follows: King, Knight and Pawn. 
+The algorithm for generating moves for non sliding pieces are easier to understand and compute than for sliding pieces.
+Therefore, we decided to take a look at these pieces first.
+At this point, we only look at places where a piece can move (non-capture moves and capture moves).
+As you know, a move is not valid if it puts its own king in check.
+In this section, we do not take this rule into account.
+As we will also be talking in the direction a piece can move to, we rely on the compass rose shown in \Cref{fig: compass rose}.
+%
+\begin{figure}
+\begin{adjustwidth}{.37\textwidth}{}
+\begin{minted}{raw}
+. NW. . . N . . .NE . .
+. . . . . . . . . . . .
+. . +7. . +8. . .+9 . . 
+. . . . \ .|. / . . . .
+W . -1. <-.0. ->.+1 . E
+. . . . / .|. \ . . . .
+. . -9. . -8 . .-7. . .
+. . . . . . . . . . . .
+. SW. . . S . . .SE . .
+\end{minted}
+\end{adjustwidth}
+\captionof{figure}{Our compass rose.}
+\label{fig: compass rose}
+\end{figure}
+%
+For better readability, we use abstractions for shifting into a direction one time.
+This can be seen in \Cref{fig: shifting abstractions}.
+Do not worry if you do not understand the operations that are shown that code block.
+It will be explained when we are going to find the move set for the king, which follows directly after this section.
+%
+\begin{listing}[H]
+\begin{minted}{c++}
+/*
+These are post-shift masks. 
+This means that we first apply the bitshift,
+and then remove unwanted wraps that could occur
+in certain circumstances.
+*/
+
+uint64_t northOne(uint64_t bitboard){
+	return bitboard << 8;
+}
+
+uint64_t southOne(uint64_t bitboard){
+	return bitboard >> 8;
+}
+
+uint64_t eastOne(uint64_t bitboard){
+	return (bitboard << 1) & Utils.ClearFile(FILE_A);
+}
+
+uint64_t southEastOne(uint64_t bitboard){
+	return (bitboard >> 7) & Utils.ClearFile(FILE_A);
+}
+
+uint64_t northEastOne(uint64_t bitboard){
+	return (bitboard << 9) & Utils.ClearFile(FILE_A);
+}
+
+uint64_t westOne(uint64_t bitboard){
+	return (bitboard >> 1) & Utils.ClearFile(FILE_H);
+}
+
+uint64_t northWestOne(uint64_t bitboard){
+	return (bitboard << 7) & Utils.ClearFile(FILE_H);
+}
+
+uint64_t southWestOne(uint64_t bitboard){
+	return (bitboard >> 9) & Utils.ClearFile(FILE_H);
+}
+\end{minted}
+\captionof{listing}{Post-shift masks for removing unwanted wraps when shifting a bitboard to obtain a move.}
+\label{fig: shifting abstractions}
+\end{listing}
+%
+\subsection{Non Sliding Pieces}
+\input{sections/"non sliding pieces"/king}
+\input{sections/"non sliding pieces"/knight}
+\input{sections/"non sliding pieces"/pawn}
+
+\subsection{Sliding Pieces \& Magic Bitboards}
+The sliding pieces in chess are the rook, bishop and the queen.
+As these pieces can have multiple rays of squares they can move to, we also have to deal with obstructions blocking certain rays.
+Friendly and enemy pieces can block an attack ray in one particular direction.
+Although we can use the shifting operations, as we have seen in the calculation of the move set for pawns, knights and the king, for calculating the moves for these pieces, other methods exists as well.
+For the sliding pieces, we will use so called magic bitboards.
+Before diving into these magic bitboards, lets explain some terminology by showing an example.
+Lets assume we are dealing with the chess board shown in \Cref{fig: magic bitboards example board}.
+The corresponding bitboard is shown in \Cref{fig: magic example board}.
+%
+\begin{figure}[H]
+	\centering
+	\subfloat[Example position.]{
+	\newchessgame
+	\setchessboard{showmover=false, smallboard}
+	\chessboard[
+		setpieces={
+		%White pieces
+		Ra1, Bc1, Pa2, Pb3, Pd2, Pd3, Ke2, Pe3, Pf2, Nf3, Pg4,
+		%Black pieces
+		pa7, pb7, pc7, nd7, kf7, rg8, rc6, pd6, pe5, pf6
+		},
+	]
+	}
+	\hspace{1cm}
+	\subfloat[The bitboard of the example position. We also call this the \textbf{occupancy bitboard}.]{
+		\begin{tikzpicture}[baseline]
+		\def\x{0.53}
+		\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+		\matrix[matrix of nodes,
+		% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+		ampersand replacement=\&,
+		inner sep=0pt,
+		anchor=south west,
+		nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+		]{
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& \textbf{1} \& 0 \\
+			\textbf{1} \& \textbf{1} \& \textbf{1} \& \textbf{1} \& 0 \& \textbf{1} \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& \textbf{1} \& 0 \& \textbf{1} \& 0 \& 0 \\
+			0 \& 0 \& 0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \\
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& \textbf{1} \& 0 \\
+			0 \& \textbf{1} \& 0 \& \textbf{1} \& \textbf{1} \& \textbf{1} \& 0 \& 0 \\
+			\textbf{1} \& 0 \& 0 \& \textbf{1} \& \textbf{1} \& \textbf{1} \& 0 \& 0 \\
+			\textbf{1} \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		};
+		\end{tikzpicture}
+		\label{fig: magic example board}
+	}
+	\vfill
+	\subfloat[The mask that removes all the pieces that cannot influence the possible moves of the rook on \texttt{c6}. We call this the \textbf{attack bitboard}.]{
+		\begin{tikzpicture}[baseline]
+		\def\x{0.53}
+		\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+		\matrix[matrix of nodes,
+		% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+		ampersand replacement=\&,
+		inner sep=0pt,
+		anchor=south west,
+		nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+		]{
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			\textbf{1} \& \textbf{1} \& 0 \& \textbf{1} \& \textbf{1} \& \textbf{1} \& \textbf{1} \& \textbf{1} \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		};
+		\end{tikzpicture}
+		\label{fig: rook c6 attack bitboard}
+		}
+	\hspace{1cm}
+		\subfloat[Result of the bitboard representing the example position AND-ed with the corresponding mask of a rook on \texttt{c6}. We also call this the \textbf{blocker bitboard}.]{
+			\begin{tikzpicture}[baseline]
+			\def\x{0.53}
+			\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+			\matrix[matrix of nodes,
+			% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+			ampersand replacement=\&,
+			inner sep=0pt,
+			anchor=south west,
+			nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+			]{
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& \textbf{1} \& 0 \& \textbf{1} \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			};
+			\end{tikzpicture}
+			\label{fig: magic blocker bitboard}
+		}
+		\captionof{figure}{From chess board to bitboard.}
+		\label{fig: magic bitboards example board}
+\end{figure}
+%
+Lets say we want to calculate the moves for the rook on \texttt{c6}. 
+As we know, rooks move in the following directions: N, E, S and W. 
+In this particular case, the rook on \texttt{c6} does not care about pieces that are not on the same rank or on the same file as where he currently is standing.
+Therefore, we use the mask shown in \Cref{fig: rook c6 attack bitboard}.
+This particular mask is essentially a bitboard where all the possible moves of the rook on \texttt{c6} are present, as if there were no pieces blocking its attack rays. 
+We call such a mask for a piece on a particular square an \textbf{attack bitboard}.
+If we \texttt{AND} this \textbf{attack bitboard} with the bitboard representing our example position (\Cref{fig: magic example board}), we get the so called \textbf{blocker bitboard} as shown in \Cref{fig: magic blocker bitboard}. 
+Now we want the legal moves for our rook.
+A simple algorithm would be to iterate over the squares in all the positions (N, E, W and S) and mark all of the empty squares.
+This is done until an occupied square is found.
+We then return the marked bits as legal moves.
+
+However, a better method exists.
+We have to make two observations:
+%
+\begin{enumerate}
+	\item We do not care about the edges on our board: if there is an enemy piece on an edge, we can always capture it. 
+	Therefore, an edge piece does not contribute to the information we need for determining the set of legal moves.
+	
+	\item So what is the maximum number of blocker bitboards when we consider all of the squares on the chess board?
+	Well, lets place a rook on \texttt{a1}. 
+	As we said previously, we do not count the edge squares as blockers. 
+	In the case of a rook standing on \texttt{a1}, the edges are: \texttt{a8} and \texttt{h1}. 
+	This leaves us with 6 positions to the north which could be occupied (\texttt{a2} through \texttt{a7}) and 6 positions to the east that could be occupied (\texttt{b1} through \texttt{g1}).
+	Note that for other positions, the squares that could be occupied would be less or equal to 12.
+	Thus, there are at maximum $2^{12}$ blocker bitboards for a random square occupied by a rook. 
+	This number is not big at all: if we would have a lookup table, we can simply look up the move set for each of the $2^{12}$ states.
+\end{enumerate}
+%
+The next question that arises is: how do we go from a blocker bitboard to an index in this lookup table? 
+This is where magic bitboards come in. The idea is as follows. 
+We find a \textbf{magic number} $m_i$ for every square such that multiplying the blocker bitboard by $m_i$ gives a perfect hash into the indices of the lookup table.
+A magic number for a rook on \texttt{c6} is:
+%
+\begin{align*}
+m_i &= 432627108460691524
+\end{align*}
+%
+Lets review our blocker bitboard as shown \Cref{fig: magic blocker bitboard}. 
+As a 64-bit number, this is simply $b = 1169880371953668b=1169880371953668$.
+Now we calculate
+%
+\begin{align*}
+mb &= 4692364060652732688 \pmod{64}
+\end{align*}
+%
+Because there are only ten relevant occupancy bits for a rook on \texttt{c6}, we only retrieve the top \textbf{10} bits of this hash. This gives the following index:
+%
+\begin{align*}
+\text{idx} &= mb >> 54 = 2083
+\end{align*}
+%
+Now we can use this index to retrieve the valid moves for a rook on \texttt{c6} with blocker bitboard shown in \Cref{fig: magic blocker bitboard}.
+Simple right?
+But how do we find these magic numbers and what do we need to take into account when finding such a hash function?
+Well, lets again take a look at the blocker bitboard shown in \Cref{fig: magic blocker bitboard}.
+We can easily see that the move set for this blocker board is equal to the moves shown in \Cref{fig: move set from blocker bitboard}.
+%
+\begin{figure}
+	\centering		
+	\begin{tikzpicture}[baseline]
+	\def\x{0.53}
+	\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+	\matrix[matrix of nodes,
+	% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+	ampersand replacement=\&,
+	inner sep=0pt,
+	anchor=south west,
+	nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+	]{
+		0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		\textbf{1} \& \textbf{1} \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \\
+		0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+	};
+	\end{tikzpicture}
+	\captionof{figure}{Move set corresonding to the blocker bitboard shown in \Cref{fig: magic blocker bitboard}.}
+	\label{fig: move set from blocker bitboard}
+\end{figure}
+%
+But is the blocker bitboard as shown in \Cref{fig: magic blocker bitboard} the only blocker bitboard that maps to the move set in \Cref{fig: move set from blocker bitboard}?
+No, it is not!
+As we can see in \Cref{fig: magic bitboards example board}, multiple blocker bits are set to the east (E) of the rook on \texttt{c6}. 
+But does it matter if there is another blocker bit if there was already a blocker bit before that one (closer to the piece)? 
+Well, only blocker bits that are the first to block the ray matter.
+Therefore, all of these blocker bitboard that share the same `first' blocker bits map to the same move set.
+The reduced blocker bitboard for \Cref{fig: magic blocker bitboard} can be seen in \Cref{fig: reduced blocker bitboard}.
+%
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[baseline]
+		\def\x{0.53}
+		\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+		\matrix[matrix of nodes,
+		% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+		ampersand replacement=\&,
+		inner sep=0pt,
+		anchor=south west,
+		nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+		]{
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+		};
+	\end{tikzpicture}
+	\captionof{figure}{Reduced blocker bitboard for the blocker bitboards shown in \Cref{fig: magic blocker bitboard}. The blockers are as follows: \texttt{c7}, \texttt{d6} and \texttt{c1}.}
+	\label{fig: reduced blocker bitboard}
+\end{figure}
+%
+In \Cref{fig: blocker bitboard variations} we can see some variations of the blocker bitboards shown \Cref{fig: magic blocker bitboard} that all can be reduced to the bitboard shown in \Cref{fig: reduced blocker bitboard}.
+%
+\begin{figure}[H]
+\centering
+		\subfloat[Blocker bitboard variation 1.]{
+			\begin{tikzpicture}[baseline]
+			\def\x{0.53}
+			\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+			\matrix[matrix of nodes,
+			% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+			ampersand replacement=\&,
+			inner sep=0pt,
+			anchor=south west,
+			nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+			]{
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& \textbf{1} \& \textbf{1} \& \textbf{1} \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+			};
+			\end{tikzpicture}
+		}
+		\hspace{1cm}
+			\subfloat[Blocker bitboard variation 2.]{
+				\begin{tikzpicture}[baseline]
+				\def\x{0.53}
+				\draw[xstep=\x cm,ystep=\x cm,color=gray] (0,0) grid (\x*8,\x*8);
+				\matrix[matrix of nodes,
+				% http://tex.stackexchange.com/questions/15093/single-ampersand-used-with-wrong-catcode-error-using-tikz-matrix-in-beamer
+				ampersand replacement=\&,
+				inner sep=0pt,
+				anchor=south west,
+				nodes={inner sep=0pt,text width=\x cm,align=center,minimum height=\x cm}
+				]{
+					0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+					0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+					0 \& 0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& \textbf{1} \\
+					0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+					0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+					0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+					0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \& 0 \\
+					0 \& 0 \& \textbf{1} \& 0 \& 0 \& 0 \& 0 \& 0 \\
+				};
+				\end{tikzpicture}
+			}
+			\captionof{figure}{Variations of the blocker bitboard as shown \Cref{fig: magic blocker bitboard}. All of these variations have the same reduced blocker bitboard.}	
+			\label{fig: blocker bitboard variations}
+\end{figure}
+%
+Now that we know that not all of the bits matter in finding the move set for a certain blocker bitboard, we continue our journey to find these so-called magic numbers.
+Well, lets first calculate all the possible blocker bitboards for the piece on a specific square.
+For each blocker bitboard variation, we calculate the corresponding reduced bitboard.
+We also maintain a database which we can access to see which index maps to which reduced bitboard.
+We then multiply the blocker bitboard variation by a random bitboard (which could be a possible magic number as we can see later).
+Now we obtain the index by shifting the result of the multiplication by $n$ bits to the right, where $n$ is the number of bits set in the corresponding attack set of the piece on that square (make sure that the corresponding edge squares are not set!).
+Now we access the database using the calculated index.
+If the index is not 0, we need to verify if the stored move set is equal to the move set that we would expect for the given blocker bitboard variation.
+If the move sets are the same, our mapping is still valid because it will map variations of the same blocker bitboard to the same index.
+We continue this validation process for all the different blocker bitboards to see whether our potential magic number maps the right blocker bitboard variations for a given square to the right index.
+If no clash occurs during our search we found a magic number for a square!
+
+So in general, generating moves using magic bitboards consists of four steps:
+%
+\begin{enumerate}
+	\item Pick some random 64-bit number, call it \textbf{magic}.
+	Get all the possible the blocker bitboard variations of the piece.
+	\item Create a database of size $2^{\text{bits}}$ (where bits in the number of bits set in the original attack bitboard).
+	\item For each blocker bitboard variation:
+	%
+	\begin{enumerate}
+		\item Calculate the corresponding \textbf{move set} for the variation. 
+
+		\item Create an index by multiplying variation with magic and shift it right with $64 - \text{bits}$.
+		\item \textbf{If} database[index] is not 0 \textbf{and} the move set stored at the index in our mapping bitboard is \textbf{not} equal to the move set we expected it to have, then we have a clash. If this happens, we need to clear our mapping and generate a new number for which we want to check whether it is a magic number.
+		 
+	\item If the move sets are equal or there was no move set stored at this index, we store the move set for the current variation at \texttt{database[index]} and continue.
+	\end{enumerate}
+	%
+	\item If the loop ends with no clashes, then magic is a valid magic number for the piece on the square we were currently looking at.
+\end{enumerate}
+%

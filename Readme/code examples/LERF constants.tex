@@ -1,0 +1,76 @@
+\begin{minted}[linenos=true, fontsize=\footnotesize, breaklines=true]{C++}
+##include <stdio.h>
+#include <iostream>
+#include <cstdlib>
+#include <stdint.h>
+#include <algorithm> 
+#include <inttypes.h>
+#include <string>
+
+using namespace std;
+
+bool isLittleEndian() {
+    short int number = 0x1;
+    char *numPtr = (char*) &number;
+    return (numPtr[0] == 1);
+}
+
+string convertToBitString(uint64_t value) {
+    string str(64, '0');
+    for (int i = 0; i < 64; i++) {
+        if ((1ll << i) & value)
+            str[63 - i] = '1';
+    }
+    // The bits are returned in the reversed order, return reversed string.
+    reverse(str.begin(), str.end());
+    return str;
+}
+
+string formatBitBoard(string bitboard) {
+    if (bitboard.length() == 8) {
+        return bitboard;
+    }
+    int begin = 8;
+    int end = bitboard.length() - 1;
+
+    string subBitString = bitboard.substr(begin, end);
+    string rank = bitboard.substr(0, 8);
+
+    return formatBitBoard(subBitString) + "\n" + rank;
+}
+
+/*
+ * 
+ */
+int main(int argc, char** argv) {
+    // Output if system is using little-endian representation
+    cout << "Is little-endian representation: " << boolalpha << isLittleEndian() << "\n";
+
+    // Hexadecimal constants for testing the bitboard representation.
+    uint64_t LERF_CONSTANTS [8] = {
+        0x0101010101010101,
+        0x8080808080808080,
+        0x00000000000000FF,
+        0xFF00000000000000,
+        0x8040201008040201,
+        0x0102040810204080,
+        0x55AA55AA55AA55AA,
+        0xAA55AA55AA55AA55
+    };
+    /*
+    sizeof() will get you the total number of bytes allocated for an array.
+    To find the number of elements in the array, you divide the total size by
+    the size of on element in the array
+     */
+    for (int i = 0; i < 8; i++) {
+        string binary = convertToBitString(LERF_CONSTANTS[i]);
+        printf("Hexadecimal: 0x%016llx" PRIx64 "\n", LERF_CONSTANTS[i]);
+        cout << "Binary: " << binary << endl;
+    }
+
+    string bitString = convertToBitString(0x0101010101010101);
+    string formattedBitString = formatBitBoard(bitString);
+    cout << "Formatted bitString: \n" << formattedBitString << endl;
+    return 0;
+}
+\end{minted}

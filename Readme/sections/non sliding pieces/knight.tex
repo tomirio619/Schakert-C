@@ -1,0 +1,96 @@
+% !TeX spellcheck = en_US
+\subsubsection{Knight}
+%
+\begin{figure}[H]
+	\centering
+	\newchessgame
+	\setchessboard{showmover=false, smallboard}
+	\chessboard[setpieces={Nd4},
+		pgfstyle=knightmove,
+		shortenstart=1ex,
+		arrow=to,
+		markmoves={
+		d4-c6,
+		d4-b5,
+		d4-b3,
+		d4-c2,
+		d4-e2,
+		d4-f3,
+		d4-f5,
+		d4-e6},
+	]
+	\captionof{figure}{All the knight moves.}
+	\label{fig:knight moves}
+\end{figure}
+%
+In \Cref{fig:knight moves}, you can see the possible moves of the knight.
+Looking at the file and row distance, it could to files and rows that are a distance 2 away from their current row or file.
+In contrary to the masks applied to our king, we need to apply either a mask that clips both the \texttt{a} and \texttt{b} file, or the \texttt{g} and \texttt{h}. Again, we do not have to worry about mask clipping, because the integer overflows and underflows will take care of that for us.
+The custom wind rose of the knight positions is shown in \Cref{fig: knight wind rose}.
+%
+\begin{figure}[H]
+\begin{adjustwidth}{.35\textwidth}{}
+\begin{minted}{raw}
+. . . NNW . . . NNE . . . .
+. . . . +15 . +17 . . . . .
+. . . . | . . . | . . . . .
+NWW +6__| . . . |__+10 NEE.
+. . . . \ . . ./. . . . . .
+. . . . . >0< . . . . . . .
+. .  __ / . . .\ __ . . . .
+SWW -10 | . . . | . -6 SEE.
+. . . . | . . . | . . . . .
+. . . -17 . . -15 . . . . .
+. . . SWW . . SEE . . . . .
+\end{minted}
+\end{adjustwidth}
+\captionof{figure}{Custom wind rose for the possible knight moves.}
+\label{fig: knight wind rose}
+\end{figure}
+%
+Now the following rules apply:
+%
+\begin{itemize}
+	\item We have to clip the \texttt{h} file if we calculate spot NNW.
+	\item We have to clip the \texttt{h} file if we calculate spot SSW.
+	\item We have to clip the \texttt{a} file if we calculate spot NNE.
+	\item We have to clip the \texttt{a} file if we calculate spot SSE.
+	\item We have to clip both the \texttt{h} file and the \texttt{g} file if we calculate spot NWW.
+	\item We have to clip both the \texttt{h} file and the \texttt{g} file if we calculate spot SWW.
+	\item We have to clip both the \texttt{a} file and the \texttt{b} file if we calculate spot NEE.
+	\item We have to clip both the \texttt{a} file and the \texttt{b} file if we calculate spot SEE.
+\end{itemize}
+%
+This gives code shown in \Cref{fig: knight moves}.
+%
+\begin{listing}
+\begin{minted}{C++}
+uint64_t getKnightMoves(uint64_t knight_loc, uint64_t friendly_pieces) {
+	uint64_t NNW_clip = clear_file[FILE_H];
+	uint64_t SSW_clip = clear_file[FILE_H];
+	uint64_t NNE_clip = clear_file[FILE_A];
+	uint64_t SSE_clip = clear_file[FILE_A];
+	
+	uint64_t NWW_clip = clear_file[FILE_H] & clear_file[FILE_G];
+	uint64_t SWW_clip = clear_file[FILE_H] & clear_file[FILE_G];
+	uint64_t NEE_clip = clear_file[FILE_A] & clear_file[FILE_B];
+	uint64_t SEE_clip = clear_file[FILE_A] & clear_file[FILE_B];
+	
+	uint64_t NWW = (knight_loc & NWW_clip) << 6;
+	uint64_t NEE = (knight_loc & NEE_clip) << 10;
+	uint64_t NNW = (knight_loc & NNW_clip) << 15;
+	uint64_t NNE = (knight_loc & NNE_clip) << 17;
+	
+	uint64_t SEE = (knight_loc & SEE_clip) >> 6;
+	uint64_t SWW = (knight_loc & SWW_clip) >> 10;
+	uint64_t SSE = (knight_loc & SSW_clip) >> 15;
+	uint64_t SSW = (knight_loc & SSW_clip) >> 17;
+	
+	uint64_t knight_moves = NWW | NEE | NNW | NNE | SEE | SWW | SSW | SSE;
+	return knight_moves & ~friendly_pieces;
+}
+\end{minted}
+\captionof{listing}{Calculation of the the knight moveset.}
+\label{fig: knight moves}
+\end{listing}
+%
