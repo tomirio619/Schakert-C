@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using sChakert.Magic;
+﻿using sChakert.Magic;
 
 namespace sChakert.MoveGeneration
 {
@@ -14,53 +12,64 @@ namespace sChakert.MoveGeneration
         */
 
         /// <summary>
-        /// mask in which the bits on rank 4 are turned on.
+        ///     mask in which the bits on rank 4 are turned on.
         /// </summary>
         private const ulong Rank4 = 0xFF000000;
 
         /// <summary>
-        /// mask in which the bits on rank 5 are turned on.
+        ///     mask in which the bits on rank 5 are turned on.
         /// </summary>
         private const ulong Rank5 = 0xFF00000000;
 
-        private static ulong NorthOne(ulong bitboard)
+        /// <summary>
+        ///     Get the bitboard representing only the white pawns that are able to double push move.
+        /// </summary>
+        /// <param name="blackPawns">Bitboard representing the black pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns>Bitboard representing the black pawns that are able to double push move.</returns>
+        public static ulong BlackPawnsAbleToDoublePush(ulong blackPawns, ulong emptySquares)
         {
-            return bitboard << 8;
+            var emptyRank6 = SouthOne(emptySquares & Rank5) & emptySquares;
+            return BlackPawnsAbleToPush(blackPawns, emptyRank6);
         }
 
-        private static ulong SouthOne(ulong bitboard)
+        /// <summary>
+        ///     Get the bitboard representing only the black pawns that are able to single push move.
+        /// </summary>
+        /// <param name="blackPawns">Bitboard representing the black pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns></returns>
+        public static ulong BlackPawnsAbleToPush(ulong blackPawns, ulong emptySquares)
         {
-            return bitboard >> 8;
+            return NorthOne(emptySquares) & blackPawns;
+        }
+
+        /// <summary>
+        ///     Get the double push moves of all the black pawns.
+        /// </summary>
+        /// <param name="blackPawns">Bitboard representing the black pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns>Bitboard representing all the double push moves for the black pawns.</returns>
+        public static ulong BlackPawnsDoublePushMoves(ulong blackPawns, ulong emptySquares)
+        {
+            var singlePushs = BlackPawnsSinglePushMoves(blackPawns, emptySquares);
+            return SouthOne(singlePushs) & Rank5 & emptySquares;
+        }
+
+        /// <summary>
+        ///     Get the single push moves of all the black pawns.
+        /// </summary>
+        /// <param name="blackPawns">Bitboard representing the white pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns>Bitboard representing all the single push moves for the black pawns.</returns>
+        public static ulong BlackPawnsSinglePushMoves(ulong blackPawns, ulong emptySquares)
+        {
+            return SouthOne(blackPawns) & emptySquares;
         }
 
         private static ulong EastOne(ulong bitboard)
         {
             return (bitboard << 1) & Utilities.ClearFile[Utilities.FILE_A];
-        }
-
-        private static ulong SouthEastOne(ulong bitboard)
-        {
-            return (bitboard >> 7) & Utilities.ClearFile[Utilities.FILE_A];
-        }
-
-        private static ulong NorthEastOne(ulong bitboard)
-        {
-            return (bitboard << 9) & Utilities.ClearFile[Utilities.FILE_A];
-        }
-
-        private static ulong WestOne(ulong bitboard)
-        {
-            return (bitboard >> 1) & Utilities.ClearFile[Utilities.FILE_H];
-        }
-
-        private static ulong NorthWestOne(ulong bitboard)
-        {
-            return (bitboard << 7) & Utilities.ClearFile[Utilities.FILE_H];
-        }
-
-        private static ulong SouthWestOne(ulong bitboard)
-        {
-            return (bitboard >> 9) & Utilities.ClearFile[Utilities.FILE_H];
         }
 
         /*
@@ -70,7 +79,7 @@ namespace sChakert.MoveGeneration
         */
 
         /// <summary>
-        /// Get the bitboard representing the knight moves.
+        ///     Get the bitboard representing the knight moves.
         /// </summary>
         /// <param name="knightPos">Bitboard representing the position of the king.</param>
         /// <param name="friendlyPieces">Bitboard representing all of the friendly pieces.</param>
@@ -93,7 +102,7 @@ namespace sChakert.MoveGeneration
         }
 
         /// <summary>
-        /// Get the knight moves given a bitboard containing the knights and the friendly pieces.
+        ///     Get the knight moves given a bitboard containing the knights and the friendly pieces.
         /// </summary>
         /// <param name="knightPos">Bitboard representing the position of the knight</param>
         /// <param name="friendlyPieces">Bitboard representing the friendly pieces</param>
@@ -120,105 +129,14 @@ namespace sChakert.MoveGeneration
             var knightSSE = (knightPos & SSEclip) >> 15;
             var knightSSW = (knightPos & SSWclip) >> 17;
 
-            var knightMoves = knightNWW | knightNEE | knightNNW | knightNNE | knightSEE | knightSWW | knightSSW | knightSSE;
+            var knightMoves = knightNWW | knightNEE | knightNNW | knightNNE | knightSEE | knightSWW | knightSSW |
+                              knightSSE;
             return knightMoves & ~friendlyPieces;
         }
 
         /// <summary>
-        /// Get the single push moves of all the white pawns.
-        /// </summary>
-        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares</param>
-        /// <returns>Bitboard representing all the single push moves for the white pawns.</returns>
-        public static ulong WhitePawnsSinglePushMoves(ulong whitePawns, ulong emptySquares)
-        {
-            return NorthOne(whitePawns) & emptySquares;
-        }
-
-        /// <summary>
-        /// Get the single push moves of all the black pawns.
-        /// </summary>
-        /// <param name="blackPawns">Bitboard representing the white pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns>Bitboard representing all the single push moves for the black pawns.</returns>
-        public static ulong BlackPawnsSinglePushMoves(ulong blackPawns, ulong emptySquares)
-        {
-            return SouthOne(blackPawns) & emptySquares;
-        }
-
-        /// <summary>
-        /// Get the double push moves of all the white pawns.
-        /// </summary>
-        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns>Bitboard representing all the double push moves for the white pawns.</returns>
-        public static ulong WhitePawnsDoublePushMoves(ulong whitePawns, ulong emptySquares)
-        {
-            var singlePushs = WhitePawnsSinglePushMoves(whitePawns, emptySquares);
-            return NorthOne(singlePushs) & Rank4 & emptySquares;
-        }
-
-        /// <summary>
-        /// Get the double push moves of all the black pawns.
-        /// </summary>
-        /// <param name="blackPawns">Bitboard representing the black pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns>Bitboard representing all the double push moves for the black pawns.</returns>
-        public static ulong BlackPawnsDoublePushMoves(ulong blackPawns, ulong emptySquares)
-        {
-            var singlePushs = BlackPawnsSinglePushMoves(blackPawns, emptySquares);
-            return SouthOne(singlePushs) & Rank5 & emptySquares;
-        }
-
-        /// <summary>
-        /// Get the bitboard representing only the white pawns that are able to single push move.
-        /// </summary>
-        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns>Bitboard representing the white pawns that are able to single push move.</returns>
-        public static ulong WhitePawnsAbleToPush(ulong whitePawns, ulong emptySquares)
-        {
-            return SouthOne(emptySquares) & whitePawns;
-        }
-
-        /// <summary>
-        /// Get the bitboard representing only the black pawns that are able to single push move.
-        /// </summary>
-        /// <param name="blackPawns">Bitboard representing the black pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns></returns>
-        public static ulong BlackPawnsAbleToPush(ulong blackPawns, ulong emptySquares)
-        {
-            return NorthOne(emptySquares) & blackPawns;
-        }
-
-        /// <summary>
-        /// Get the bitboard representing only the white pawns that are able to double push move.
-        /// </summary>
-        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns>Bitboard representing the white pawns that are able to double push move.</returns>
-        public static ulong WhitePawnsAbleToDoublePush(ulong whitePawns, ulong emptySquares)
-        {
-            var emptyRank3 = SouthOne(emptySquares & Rank4) & emptySquares;
-            return WhitePawnsAbleToPush(whitePawns, emptyRank3);
-        }
-
-        /// <summary>
-        /// Get the bitboard representing only the white pawns that are able to double push move.
-        /// </summary>
-        /// <param name="blackPawns">Bitboard representing the black pawns.</param>
-        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
-        /// <returns>Bitboard representing the black pawns that are able to double push move.</returns>
-        public static ulong BlackPawnsAbleToDoublePush(ulong blackPawns, ulong emptySquares)
-        {
-            var emptyRank6 = SouthOne(emptySquares & Rank5) & emptySquares;
-            return BlackPawnsAbleToPush(blackPawns, emptyRank6);
-        }
-
-        /// <summary>
-        /// Get the moveset of a single rook by performing a special lookup in a move database.
-        /// This lookup is based on pre-caluculated "magic" values.
+        ///     Get the moveset of a single rook by performing a special lookup in a move database.
+        ///     This lookup is based on pre-caluculated "magic" values.
         /// </summary>
         /// <param name="piecePos">The bitboard representing the piece (either rook or bishop)</param>
         /// <param name="rookPos">The bitboard representing the rook</param>
@@ -245,5 +163,85 @@ namespace sChakert.MoveGeneration
                 : MagicGenerator.BishopLookupTable[boardIndex, magicIndex] & ~friendlyPieces;
         }
 
+        private static ulong NorthEastOne(ulong bitboard)
+        {
+            return (bitboard << 9) & Utilities.ClearFile[Utilities.FILE_A];
+        }
+
+        private static ulong NorthOne(ulong bitboard)
+        {
+            return bitboard << 8;
+        }
+
+        private static ulong NorthWestOne(ulong bitboard)
+        {
+            return (bitboard << 7) & Utilities.ClearFile[Utilities.FILE_H];
+        }
+
+        private static ulong SouthEastOne(ulong bitboard)
+        {
+            return (bitboard >> 7) & Utilities.ClearFile[Utilities.FILE_A];
+        }
+
+        private static ulong SouthOne(ulong bitboard)
+        {
+            return bitboard >> 8;
+        }
+
+        private static ulong SouthWestOne(ulong bitboard)
+        {
+            return (bitboard >> 9) & Utilities.ClearFile[Utilities.FILE_H];
+        }
+
+        private static ulong WestOne(ulong bitboard)
+        {
+            return (bitboard >> 1) & Utilities.ClearFile[Utilities.FILE_H];
+        }
+
+        /// <summary>
+        ///     Get the bitboard representing only the white pawns that are able to double push move.
+        /// </summary>
+        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns>Bitboard representing the white pawns that are able to double push move.</returns>
+        public static ulong WhitePawnsAbleToDoublePush(ulong whitePawns, ulong emptySquares)
+        {
+            var emptyRank3 = SouthOne(emptySquares & Rank4) & emptySquares;
+            return WhitePawnsAbleToPush(whitePawns, emptyRank3);
+        }
+
+        /// <summary>
+        ///     Get the bitboard representing only the white pawns that are able to single push move.
+        /// </summary>
+        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns>Bitboard representing the white pawns that are able to single push move.</returns>
+        public static ulong WhitePawnsAbleToPush(ulong whitePawns, ulong emptySquares)
+        {
+            return SouthOne(emptySquares) & whitePawns;
+        }
+
+        /// <summary>
+        ///     Get the double push moves of all the white pawns.
+        /// </summary>
+        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares.</param>
+        /// <returns>Bitboard representing all the double push moves for the white pawns.</returns>
+        public static ulong WhitePawnsDoublePushMoves(ulong whitePawns, ulong emptySquares)
+        {
+            var singlePushs = WhitePawnsSinglePushMoves(whitePawns, emptySquares);
+            return NorthOne(singlePushs) & Rank4 & emptySquares;
+        }
+
+        /// <summary>
+        ///     Get the single push moves of all the white pawns.
+        /// </summary>
+        /// <param name="whitePawns">Bitboard representing the white pawns.</param>
+        /// <param name="emptySquares">Bitboard representing the empty squares</param>
+        /// <returns>Bitboard representing all the single push moves for the white pawns.</returns>
+        public static ulong WhitePawnsSinglePushMoves(ulong whitePawns, ulong emptySquares)
+        {
+            return NorthOne(whitePawns) & emptySquares;
+        }
     }
 }

@@ -50,6 +50,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Chessboard\Chessboard.cs" />
+    <Compile Include="Chessboard\Color.cs" />
+    <Compile Include="Chessboard\Move.cs" />
+    <Compile Include="Chessboard\State.cs" />
+    <Compile Include="Chessboard\Type.cs" />
     <Compile Include="Magic\MagicGenerator.cs" />
     <Compile Include="MoveGeneration\AttackBitboard.cs" />
     <Compile Include="Utilities.cs" />
@@ -60,9 +65,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Chessboard\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

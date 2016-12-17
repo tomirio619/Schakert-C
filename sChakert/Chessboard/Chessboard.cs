@@ -1,37 +1,73 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace sChakert.Chessboard
 {
-    class Chessboard
+    internal class Chessboard
     {
-
-
-
+        /// <summary>
+        ///     Array containing all of the bitboards
+        /// </summary>
+        private readonly ulong[] Bitboards;
 
         /// <summary>
-        /// Array containing all of the bitboards
+        ///     Bitboards of all the pieces
         /// </summary>
-        private ulong[] Bitboards;
+        private readonly ulong WhitePawns;
 
         /// <summary>
-        /// Bitboards of all the pieces
+        ///     Bitboards of all the pieces
         /// </summary>
-        private ulong WhitePawns,
-            WhiteRooks,
-            WhiteKnights,
-            WhiteBishops,
-            WhiteQueens,
-            WhiteKing,
-            BlackPawns,
-            BlackRooks,
-            BlackKnights,
-            BlackBishops,
-            BlackQueens,
-            BlackKing;
+        private readonly ulong WhiteRooks;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong WhiteKnights;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong WhiteBishops;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong WhiteQueens;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong WhiteKing;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong BlackPawns;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong BlackRooks;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong BlackKnights;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong BlackBishops;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong BlackQueens;
+
+        /// <summary>
+        ///     Bitboards of all the pieces
+        /// </summary>
+        private readonly ulong BlackKing;
 
 
         public Chessboard()
@@ -68,11 +104,10 @@ namespace sChakert.Chessboard
                 BlackQueens,
                 BlackKing
             };
-
         }
 
         /// <summary>
-        /// Create a chessboard from a given FEN string.
+        ///     Create a chessboard from a given FEN string.
         /// </summary>
         /// <param name="FEN">The FEN string</param>
         public Chessboard(string FEN)
@@ -81,27 +116,21 @@ namespace sChakert.Chessboard
         }
 
         /// <summary>
-        /// Get the piece and the type of a piece on a given board index (if there is one)
+        ///     Get the piece and the type of a piece on a given board index (if there is one)
         /// </summary>
         /// <param name="boardIndex">The board index</param>
         /// <returns>A tuple containing the color and the type of the chess piece one the specified board index</returns>
         public Tuple<Color, Type> GetPieceTypeAndColour(int boardIndex)
         {
-            ulong bitboardPos = 1UL << boardIndex;
+            var bitboardPos = 1UL << boardIndex;
             for (var i = 0; i != 12; ++i)
-            {
                 if ((Bitboards[i] & bitboardPos) > 0)
                 {
-                    Color color = i > 6 ? Color.Black : Color.White;
+                    var color = i > 6 ? Color.Black : Color.White;
                     return new Tuple<Color, Type>(color, (Type) i);
                 }
-                    
-            }
             // empty
-            return new Tuple<Color, Type>(Color.None, Type.None); 
+            return new Tuple<Color, Type>(Color.None, Type.None);
         }
-
-
-
     }
 }

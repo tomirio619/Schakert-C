@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace sChakert.Chessboard
+﻿namespace sChakert.Chessboard
 {
     /// <summary>
-    /// Enum of the colors of the chess pieces.
+    ///     Enum of the colors of the chess pieces.
     /// </summary>
     public enum Color
     {
