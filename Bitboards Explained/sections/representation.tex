@@ -128,18 +128,18 @@ An example:
 	\end{center}
 	\item We perform a LSHFT 4. This results in the following 64-bit number:
 	\begin{center}
-		\texttt{1111000000000000000000000000000000000000000000000000111111110000}
+		\texttt{0000111111110000000000000000000000000000000000000000000000001111}
 	\end{center}
 	\item Performing a RSHFT 4, we get the following 64-bit number (note that it is not that same as our initial 64-bit number):
 	\begin{center}
 		\begin{center}
-			\texttt{0000111111110000000000000000000000000000000000000000000000001111}
+			\texttt{1111111100000000000000000000000000000000000000000000000011110000}
 		\end{center}
 	\end{center}
 \end{itemize}
 %
-As you can see, if we perform a LSHFT, padding zero's are added on the MSB side.
-The opposite occurs when performing a RSHFT, where padding zero's are added on the LSB side.
+As you can see, if we perform a LSHFT, padding zero's are added on the LSB side.
+The opposite occurs when performing a RSHFT, where padding zero's are added on the MSB side.
 We will always show the padding zero's, because we want our number to contain exactly 64 bits.
 Note that these padding zero's do not influence the number belonging to the binary representation.
 

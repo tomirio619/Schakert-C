@@ -7,16 +7,16 @@ using RadaCode.SwissKnife;
 
 namespace sChakert.Magic
 {
-    static class Utilities
+    internal static class Utilities
     {
         /*Random number generator.*/
-        private static Random rand = new Random();
+        private static readonly Random rand = new Random();
 
         /*Mersenne Twister RNG, seeded Mersenne Twister with Random device.*/
-        private static MersenneTwister mt = new MersenneTwister(rand.Next());
+        private static readonly MersenneTwister mt = new MersenneTwister(rand.Next());
 
         /*64 bit De Bruijn number.*/
-        private static UInt64 debruijn64 = 0x03f79d71b4cb0a89;
+        private static ulong debruijn64 = 0x03f79d71b4cb0a89;
 
         /// <summary>
         ///  The deBruijn bit positions.
@@ -50,7 +50,7 @@ namespace sChakert.Magic
         /// Bit masks for clearing a certain file.
         /// Index this array using the static file names, like "FILE_A".
         /// </summary>
-        public static UInt64[] clearFile = new UInt64[8]
+        public static ulong[] ClearFile = new ulong[8]
         {
             0xFEFEFEFEFEFEFEFE, // FILE_A
             0xFDFDFDFDFDFDFDFD, // FILE_B
@@ -71,7 +71,7 @@ namespace sChakert.Magic
         /// If the sign is positive, the bits will be rotated to the LSB. If the sign is negative, they will be rotated
         /// to the MSB.</param>
         /// <returns></returns>
-        public static UInt64 Rotate(UInt64 v, UInt64 n)
+        public static ulong Rotate(ulong v, ulong n)
         {
             n = n & 63UL;
             if (n > 0)
@@ -85,11 +85,11 @@ namespace sChakert.Magic
         /// <returns>
         /// <code>True</code> if the system usese little-endian format, <code>False</code> otherwise.
         /// </returns>
-        public static unsafe bool isLittleEndian()
+        public static unsafe bool IsLittleEndian()
         {
             short number = 0x1;
-            char* numPtr = (char*) &number;
-            return (numPtr[0] == 1);
+            var numPtr = (char*) &number;
+            return numPtr[0] == 1;
         }
 
         /// <summary>
@@ -97,23 +97,17 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="bitboard">The bitboard</param>
         /// <returns>Bitstring of the bitboard.</returns>
-        public static string ToBitString(UInt64 bitboard)
+        public static string ToBitString(ulong bitboard)
         {
-            StringBuilder boardString = new StringBuilder(64);
+            var boardString = new StringBuilder(64);
             // Fil the string with zeros
             boardString.Append('0', 64);
-            for (int i = 0; i < 64; i++)
-            {
+            for (var i = 0; i < 64; i++)
                 if (((1UL << i) & bitboard) > 0)
-                {
                     boardString[i] = '1';
-                }
-            }
             // The bits are returned in the reversed order. Therefore we return the reversed string.
-            if (!isLittleEndian())
-            {
+            if (!IsLittleEndian())
                 return Reverse(boardString.ToString());
-            }
             return boardString.ToString();
         }
 
@@ -122,9 +116,9 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="value">The uint64 value from which we want to have the HEX representation</param>
         /// <returns></returns>
-        public static string toHEX(UInt64 value)
+        public static string ToHEX(ulong value)
         {
-            string HEX = value.ToString("X16");
+            var HEX = value.ToString("X16");
             return "0x" + HEX;
         }
 
@@ -133,9 +127,9 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="s">The string to reverse</param>
         /// <returns></returns>
-        public static string Reverse(String s)
+        public static string Reverse(string s)
         {
-            char[] charArray = s.ToCharArray();
+            var charArray = s.ToCharArray();
             Array.Reverse(charArray);
             return new string(charArray);
         }
@@ -149,12 +143,10 @@ namespace sChakert.Magic
         public static string FormatBitBoard(string bitboard)
         {
             if (bitboard.Length == 8)
-            {
                 return bitboard;
-            }
-            int begin = 8;
-            string subBitString = bitboard.Substring(begin);
-            string rank = bitboard.Substring(0, 8);
+            var begin = 8;
+            var subBitString = bitboard.Substring(begin);
+            var rank = bitboard.Substring(0, 8);
             return FormatBitBoard(subBitString) + "\n" + rank;
         }
 
@@ -163,9 +155,9 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="bitboard"></param>
         /// <returns>Binary string formatted as a chess board.</returns>
-        public static string ToChessBoard(UInt64 bitboard)
+        public static string ToChessBoard(ulong bitboard)
         {
-            string binaryString = ToBitString(bitboard);
+            var binaryString = ToBitString(bitboard);
             return FormatBitBoard(binaryString);
         }
 
@@ -177,10 +169,10 @@ namespace sChakert.Magic
         public static void PrintHexConstants()
         {
             // Output if system is using little-endian representation
-            Console.WriteLine("Is little-endian representation: " + isLittleEndian());
+            Console.WriteLine("Is little-endian representation: " + IsLittleEndian());
 
             // Hexadecimal constants for testing the bitboard representation.
-            UInt64[] LERF_CONSTANTS = new UInt64[8]
+            var LERF_CONSTANTS = new ulong[8]
             {
                 0x0101010101010101, // a-file
                 0x8080808080808080, // h-file
@@ -191,15 +183,15 @@ namespace sChakert.Magic
                 0x55AA55AA55AA55AA, // light squares
                 0xAA55AA55AA55AA55 // dark squares
             };
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
-                string binary = ToBitString(LERF_CONSTANTS[i]);
-                Console.WriteLine("Hexadecimal:" + toHEX(LERF_CONSTANTS[i]));
+                var binary = ToBitString(LERF_CONSTANTS[i]);
+                Console.WriteLine("Hexadecimal:" + ToHEX(LERF_CONSTANTS[i]));
                 Console.WriteLine("Binary:\n" + FormatBitBoard(binary));
             }
 
-            string bitString = ToBitString(0x00000000FF000000);
-            string formattedBitString = FormatBitBoard(bitString);
+            var bitString = ToBitString(0x00000000FF000000);
+            var formattedBitString = FormatBitBoard(bitString);
             Console.WriteLine("rank 4 bitString: \n" + formattedBitString);
         }
 
@@ -208,16 +200,19 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="bitboard">The bitboard</param>
         /// <returns>A vector with the indices of the non-zero bits.</returns>
-        public static List<int> GetActiveBitIndices(UInt64 bitboard)
+        public static List<int> GetActiveBitIndices(ulong bitboard)
         {
-            List<int> activeBitIndices = new List<int>();
-            int boardIndex;
+            var activeBitIndices = new List<int>();
+            int boardIndex = 0;
             while (bitboard > 0)
             {
                 // The bitboard has one or more active bits
-                boardIndex = BitScanForward(bitboard);
+                var nextBitIndex = BitScanForward(bitboard);
+                boardIndex += nextBitIndex;
                 activeBitIndices.Add(boardIndex);
-                bitboard >>= (boardIndex + 1);
+                bitboard >>= nextBitIndex + 1;
+                boardIndex++;
+
             }
             return activeBitIndices;
         }
@@ -226,13 +221,13 @@ namespace sChakert.Magic
         /// Get a random 64 bit number.
         /// </summary>
         /// <returns>random 64 bit number</returns>
-        public static UInt64 RandomUint64()
+        public static ulong RandomUint64()
         {
-            UInt64 u1, u2, u3, u4;
-            u1 = (UInt64) (mt.Next()) & 0xFFFF;
-            u2 = (UInt64) (mt.Next()) & 0xFFFF;
-            u3 = (UInt64) (mt.Next()) & 0xFFFF;
-            u4 = (UInt64) (mt.Next()) & 0xFFFF;
+            ulong u1, u2, u3, u4;
+            u1 = (ulong) mt.Next() & 0xFFFF;
+            u2 = (ulong) mt.Next() & 0xFFFF;
+            u3 = (ulong) mt.Next() & 0xFFFF;
+            u4 = (ulong) mt.Next() & 0xFFFF;
             return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
         }
 
@@ -241,7 +236,7 @@ namespace sChakert.Magic
         /// This method is used in finding a potential magic number for the rook and bishop movements.
         /// </summary>
         /// <returns></returns>
-        public static UInt64 RandomUint64Fewbits()
+        public static ulong RandomUint64Fewbits()
         {
             return RandomUint64() & RandomUint64() & RandomUint64();
         }
@@ -259,9 +254,9 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="bitboard">The bitboard for which we want to find the index of the first non-zero LSB.</param>
         /// <returns>The index of the first non-zero LSB.</returns>
-        public static int BitScanForward(UInt64 bitboard)
+        public static int BitScanForward(ulong bitboard)
         {
-            bitboard ^= (bitboard - 1);
+            bitboard ^= bitboard - 1;
             bitboard *= debruijn64;
             bitboard >>= 58;
             return MultiplyDeBruijnBitPosition[bitboard];
