@@ -69,7 +69,7 @@ namespace sChakert.MoveGeneration
 
         private static ulong EastOne(ulong bitboard)
         {
-            return (bitboard << 1) & Utilities.ClearFile[Utilities.FILE_A];
+            return (bitboard << 1) & Utilities.ClearFile[Utilities.FileA];
         }
 
         /*
@@ -109,15 +109,15 @@ namespace sChakert.MoveGeneration
         /// <returns>Bitboard representing all the moves of the knight.</returns>
         public static ulong GetKnightMoves(ulong knightPos, ulong friendlyPieces)
         {
-            var NNWclip = Utilities.ClearFile[Utilities.FILE_H];
-            var SSWclip = Utilities.ClearFile[Utilities.FILE_H];
-            var NNEclip = Utilities.ClearFile[Utilities.FILE_A];
-            var SSEclip = Utilities.ClearFile[Utilities.FILE_A];
+            var NNWclip = Utilities.ClearFile[Utilities.FileH];
+            var SSWclip = Utilities.ClearFile[Utilities.FileH];
+            var NNEclip = Utilities.ClearFile[Utilities.FileA];
+            var SSEclip = Utilities.ClearFile[Utilities.FileA];
 
-            var NWWclip = Utilities.ClearFile[Utilities.FILE_H] & Utilities.ClearFile[Utilities.FILE_G];
-            var SWWclip = Utilities.ClearFile[Utilities.FILE_H] & Utilities.ClearFile[Utilities.FILE_G];
-            var NEEclip = Utilities.ClearFile[Utilities.FILE_A] & Utilities.ClearFile[Utilities.FILE_B];
-            var SEEclip = Utilities.ClearFile[Utilities.FILE_A] & Utilities.ClearFile[Utilities.FILE_B];
+            var NWWclip = Utilities.ClearFile[Utilities.FileH] & Utilities.ClearFile[Utilities.FileG];
+            var SWWclip = Utilities.ClearFile[Utilities.FileH] & Utilities.ClearFile[Utilities.FileG];
+            var NEEclip = Utilities.ClearFile[Utilities.FileA] & Utilities.ClearFile[Utilities.FileB];
+            var SEEclip = Utilities.ClearFile[Utilities.FileA] & Utilities.ClearFile[Utilities.FileB];
 
             var knightNWW = (knightPos & NWWclip) << 6;
             var knightNEE = (knightPos & NEEclip) << 10;
@@ -165,7 +165,7 @@ namespace sChakert.MoveGeneration
 
         private static ulong NorthEastOne(ulong bitboard)
         {
-            return (bitboard << 9) & Utilities.ClearFile[Utilities.FILE_A];
+            return (bitboard << 9) & Utilities.ClearFile[Utilities.FileA];
         }
 
         private static ulong NorthOne(ulong bitboard)
@@ -175,12 +175,12 @@ namespace sChakert.MoveGeneration
 
         private static ulong NorthWestOne(ulong bitboard)
         {
-            return (bitboard << 7) & Utilities.ClearFile[Utilities.FILE_H];
+            return (bitboard << 7) & Utilities.ClearFile[Utilities.FileH];
         }
 
         private static ulong SouthEastOne(ulong bitboard)
         {
-            return (bitboard >> 7) & Utilities.ClearFile[Utilities.FILE_A];
+            return (bitboard >> 7) & Utilities.ClearFile[Utilities.FileA];
         }
 
         private static ulong SouthOne(ulong bitboard)
@@ -190,12 +190,12 @@ namespace sChakert.MoveGeneration
 
         private static ulong SouthWestOne(ulong bitboard)
         {
-            return (bitboard >> 9) & Utilities.ClearFile[Utilities.FILE_H];
+            return (bitboard >> 9) & Utilities.ClearFile[Utilities.FileH];
         }
 
         private static ulong WestOne(ulong bitboard)
         {
-            return (bitboard >> 1) & Utilities.ClearFile[Utilities.FILE_H];
+            return (bitboard >> 1) & Utilities.ClearFile[Utilities.FileH];
         }
 
         /// <summary>

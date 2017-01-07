@@ -3,17 +3,11 @@
     public enum Type
     {
         None = -1,
-        Wpawn = 0,
-        Wrook = 1,
-        Wknight = 2,
-        Wbishop = 3,
-        Wqueen = 4,
-        Wking = 5,
-        BPawn = 6,
-        BRook = 7,
-        BKnight = 8,
-        BBishop = 9,
-        BQueen = 10,
-        BKing = 11
+        Pawn = 0,
+        Knight = 1,
+        Bishop = 2,
+        Rook = 3,
+        Queen = 4,
+        King = 5
     }
 }

@@ -3,34 +3,43 @@ using System.Collections.Generic;
 using System.Text;
 using RadaCode.SwissKnife;
 
-namespace sChakert.Magic
+namespace sChakert
 {
     internal static class Utilities
     {
-        /*
-        File constants
-        */
-        public const int FILE_A = 0;
-        public const int FILE_B = 1;
-        public const int FILE_C = 2;
-        public const int FILE_D = 3;
-        public const int FILE_E = 4;
-        public const int FILE_F = 5;
-        public const int FILE_G = 6;
-        public const int FILE_H = 7;
-        /*Random number generator.*/
-        private static readonly Random rand = new Random();
-
-        /*Mersenne Twister RNG, seeded Mersenne Twister with Random device.*/
-        private static readonly MersenneTwister mt = new MersenneTwister(rand.Next());
-
-        /*64 bit De Bruijn number.*/
-        private static readonly ulong debruijn64 = 0x03f79d71b4cb0a89;
+        /// <summary>
+        /// File constants
+        /// </summary>
+        public const int FileA = 0;
+        public const int FileB = 1;
+        public const int FileC = 2;
+        public const int FileD = 3;
+        public const int FileE = 4;
+        public const int FileF = 5;
+        public const int FileG = 6;
+        public const int FileH = 7;
 
         /// <summary>
-        ///     The deBruijn bit positions.
+        /// Random number generator
         /// </summary>
-        private static readonly int[] MultiplyDeBruijnBitPosition = new int[64]
+        private static readonly Random Rand = new Random();
+
+        /// <summary>
+        /// Mersenne Twister RNG, seeded Mersenne Twister with a random number
+        /// </summary>
+        private static readonly MersenneTwister Mt = new MersenneTwister(Rand.Next());
+
+        /// <summary>
+        /// 64 bit De Bruijn number
+        /// </summary>
+        private const ulong Debruijn64 = 0x03f79d71b4cb0a89;
+
+        // ‭001111 110111 100111 010111 000110 110100 110010 110000 101010 001001‬
+
+        /// <summary>
+        /// The deBruijn bit positions.
+        /// </summary>
+        private static readonly int[] MultiplyDeBruijnBitPosition = new int[]
         {
             0, 47, 1, 56, 48, 27, 2, 60,
             57, 49, 41, 37, 28, 16, 3, 61,
@@ -42,11 +51,18 @@ namespace sChakert.Magic
             13, 18, 8, 12, 7, 6, 5, 63
         };
 
+        private static int[] MultiplyDeBruijnBitPositionTest = new int[64];
+
         /// <summary>
-        ///     Bit masks for clearing a certain file.
-        ///     Index this array using the static file names, like "FILE_A".
+        /// Indicates if the system is using little endianess
         /// </summary>
-        public static ulong[] ClearFile = new ulong[8]
+        public static bool SystemIsLittleEndian = IsLittleEndian();
+
+        /// <summary>
+        /// Bit masks for clearing a certain file.
+        /// Index this array using the static file names, like "FILE_A".
+        /// </summary>
+        public static ulong[] ClearFile = new ulong[]
         {
             0xFEFEFEFEFEFEFEFE, // FILE_A
             0xFDFDFDFDFDFDFDFD, // FILE_B
@@ -58,32 +74,26 @@ namespace sChakert.Magic
             0x7F7F7F7F7F7F7F7F // FILE_H
         };
 
+
         /// <summary>
-        ///     Calculate the index of the first non-zero LSB in a given bitboard.
-        ///     It requires one more operation than the earlier one involving modulus division,
-        ///     but the multiply may be faster.
-        ///     The expression (v & -v) extracts the least significant 1 bit from v.
-        ///     The constant 0x03f79d71b4cb0a89 is a de Bruijn sequence,
-        ///     which produces a unique pattern of bits into the high 6 bits for each possible bit position that it is multiplied
-        ///     against.
-        ///     When there are no bits set, it returns 0.
-        ///     More information can be found by reading the paper
-        ///     "Using de Bruijn Sequences to Index 1 in a Computer Word by Charles E. Leiserson, Harald Prokof, and Keith H.
-        ///     Randall".
+        /// Calculate the index of the first non-zero LSB in a given bitboard.
+        /// @See https://chessprogramming.wikispaces.com/BitScan
         /// </summary>
         /// <param name="bitboard">The bitboard for which we want to find the index of the first non-zero LSB.</param>
         /// <returns>The index of the first non-zero LSB.</returns>
         public static int BitScanForward(ulong bitboard)
         {
+            // Contains all bits set including and below the least signifant set bit
             bitboard ^= bitboard - 1;
-            bitboard *= debruijn64;
+            // Multiply with the DeBruijn number
+            bitboard *= Debruijn64;
+            // Create index
             bitboard >>= 58;
             return MultiplyDeBruijnBitPosition[bitboard];
         }
 
-
         /// <summary>
-        ///     Formats a given bitboard string to a chess board.
+        /// Formats a given bitboard string to a chess board.
         /// </summary>
         /// <param name="bitboard"></param>
         /// <returns>The bitboard string formatted as a chess board. </returns>
@@ -98,7 +108,7 @@ namespace sChakert.Magic
         }
 
         /// <summary>
-        ///     Get all the indices of the non-zero bits
+        ///  Get all the indices of the non-zero bits
         /// </summary>
         /// <param name="bitboard">The bitboard</param>
         /// <returns>A vector with the indices of the non-zero bits.</returns>
@@ -119,10 +129,10 @@ namespace sChakert.Magic
         }
 
         /// <summary>
-        ///     Check whether the system uses little or big endian format.
+        ///  Check whether the system uses little or big endian format.
         /// </summary>
         /// <returns>
-        ///     <code>True</code> if the system usese little-endian format, <code>False</code> otherwise.
+        /// <code>True</code> if the system usese little-endian format, <code>False</code> otherwise.
         /// </returns>
         public static unsafe bool IsLittleEndian()
         {
@@ -132,17 +142,17 @@ namespace sChakert.Magic
         }
 
         /// <summary>
-        ///     Print formatted hex constants.
-        ///     This can be used to see if the conversion to a bitstring complies with the
-        ///     underlying representation(big - or little - endian).
+        ///  Print formatted hex constants.
+        ///  This can be used to see if the conversion to a bitstring complies with the
+        ///  underlying representation(big - or little - endian).
         /// </summary>
         public static void PrintHexConstants()
         {
             // Output if system is using little-endian representation
-            Console.WriteLine("Is little-endian representation: " + IsLittleEndian());
+            Console.WriteLine("Is little-endian representation: " + SystemIsLittleEndian);
 
             // Hexadecimal constants for testing the bitboard representation.
-            var LERF_CONSTANTS = new ulong[8]
+            var lerfConstants = new ulong[]
             {
                 0x0101010101010101, // a-file
                 0x8080808080808080, // h-file
@@ -155,8 +165,8 @@ namespace sChakert.Magic
             };
             for (var i = 0; i < 8; i++)
             {
-                var binary = ToBitString(LERF_CONSTANTS[i]);
-                Console.WriteLine("Hexadecimal:" + ToHEX(LERF_CONSTANTS[i]));
+                var binary = ToBitString(lerfConstants[i]);
+                Console.WriteLine("Hexadecimal:" + ToHex(lerfConstants[i]));
                 Console.WriteLine("Binary:\n" + FormatBitBoard(binary));
             }
 
@@ -166,22 +176,21 @@ namespace sChakert.Magic
         }
 
         /// <summary>
-        ///     Get a random 64 bit number.
+        /// Get a random 64 bit number.
         /// </summary>
         /// <returns>random 64 bit number</returns>
         public static ulong RandomUint64()
         {
-            ulong u1, u2, u3, u4;
-            u1 = (ulong) mt.Next() & 0xFFFF;
-            u2 = (ulong) mt.Next() & 0xFFFF;
-            u3 = (ulong) mt.Next() & 0xFFFF;
-            u4 = (ulong) mt.Next() & 0xFFFF;
+            var u1 = (ulong) Mt.Next() & 0xFFFF;
+            var u2 = (ulong) Mt.Next() & 0xFFFF;
+            var u3 = (ulong) Mt.Next() & 0xFFFF;
+            var u4 = (ulong) Mt.Next() & 0xFFFF;
             return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
         }
 
         /// <summary>
-        ///     Get a random 64 bit number with only a few bits set.
-        ///     This method is used in finding a potential magic number for the rook and bishop movements.
+        /// Get a random 64 bit number with only a few bits set.
+        /// This method is used in finding a potential magic number for the rook and bishop movements.
         /// </summary>
         /// <returns></returns>
         public static ulong RandomUint64Fewbits()
@@ -190,7 +199,7 @@ namespace sChakert.Magic
         }
 
         /// <summary>
-        ///     Get the reverse of a string
+        /// Get the reverse of a string
         /// </summary>
         /// <param name="s">The string to reverse</param>
         /// <returns></returns>
@@ -234,9 +243,7 @@ namespace sChakert.Magic
                 if (((1UL << i) & bitboard) > 0)
                     boardString[i] = '1';
             // The bits are returned in the reversed order. Therefore we return the reversed string.
-            if (!IsLittleEndian())
-                return Reverse(boardString.ToString());
-            return boardString.ToString();
+            return SystemIsLittleEndian ? Reverse(boardString.ToString()) : boardString.ToString();
         }
 
         /// <summary>
@@ -255,10 +262,42 @@ namespace sChakert.Magic
         /// </summary>
         /// <param name="value">The uint64 value from which we want to have the HEX representation</param>
         /// <returns></returns>
-        public static string ToHEX(ulong value)
+        public static string ToHex(ulong value)
         {
-            var HEX = value.ToString("X16");
-            return "0x" + HEX;
+            var hex = value.ToString("X16");
+            return "0x" + hex;
+        }
+
+        /// <summary>
+        /// Generate a deBruijn number based on the PreferOne algorithm
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static ulong PreferOneDeBruijn64(int n = 6)
+        {
+            Console.WriteLine("Test");
+            // start with a string of n zeros
+            var binaryDeBruijn = new StringBuilder();
+            binaryDeBruijn.Append('0', n);
+            while (true)
+            {
+                var curLenght = binaryDeBruijn.Length;
+                var begin = curLenght - n + 1;
+                // Second paramater of ToString specified lenght of substring
+                var newRowWithOne = binaryDeBruijn.ToString(begin, n - 1) + '1';
+                var newRowWithZero = binaryDeBruijn.ToString(begin, n - 1) + '0';
+                if (!binaryDeBruijn.ToString().Contains(newRowWithOne))
+                    binaryDeBruijn.Append("1");
+                else if (!binaryDeBruijn.ToString().Contains(newRowWithZero))
+                    binaryDeBruijn.Append("0");
+                else
+                    break;
+            }
+            // Drop the last n-1 bits, as they are equal to the first n-1 bits.
+            // You can imagine the other bits in a circle
+            var deBruijnCyclic = binaryDeBruijn.ToString(0, binaryDeBruijn.Length - n + 1);
+            var deBruijn = Convert.ToUInt64(deBruijnCyclic, 2);
+            return deBruijn;
         }
     }
 }
