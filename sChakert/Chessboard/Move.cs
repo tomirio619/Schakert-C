@@ -6,19 +6,19 @@ namespace sChakert.Chessboard
     public static class Move
     {
 /*
-                    Assuming little endiannes, A move is encoded as follows (unsigned 32 bit integer):
-                    0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31
-                    <----------------->
-                    Kind of move
-                                       <----------------------->
-                                       From square
-                                                                <---------------------------->
-                                                                To square
-                                                                                              <----------------------->
-                                                                                              Type of captured piece
-                                                                                                                       <---------------------->
-                                                                                                                       Promotion? Type to promote into                                                                                                
-                 */
+                            Assuming little endiannes, A move is encoded as follows (unsigned 32 bit integer):
+                            0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31
+                            <----------------->
+                            Kind of move
+                                               <----------------------->
+                                               From square
+                                                                        <---------------------------->
+                                                                        To square
+                                                                                                      <----------------------->
+                                                                                                      Type of captured piece
+                                                                                                                               <---------------------->
+                                                                                                                               Promotion? Type to promote into                                                                                                
+                         */
 
 
         /// <summary>
@@ -28,8 +28,9 @@ namespace sChakert.Chessboard
         /// <param name="fromBoardIndex">The original position of the piece</param>
         /// <param name="toBoardIndex">The new position of the piece</param>
         /// <param name="pieceType">The type of the piece</param>
+        /// <param name="chessBoard">The chessboard</param>
         /// <returns></returns>
-        public static List<int> EncodeMove(int fromBoardIndex, int toBoardIndex, Type pieceType, Chessboard chessBoard)
+        public static List<int> GetMoves(int fromBoardIndex, int toBoardIndex, Type pieceType, Chessboard chessBoard)
         {
             var pieceColor = chessBoard.GetPieceColor(fromBoardIndex);
             var newSquareInfo = chessBoard.GetPieceTypeAndColour(toBoardIndex);
@@ -43,6 +44,15 @@ namespace sChakert.Chessboard
             return new List<int>();
         }
 
+        /// <summary>
+        /// Encode the move of a pawn.
+        /// </summary>
+        /// <param name="fromBoardIndex">The current board index of the pawn</param>
+        /// <param name="toBoardIndex">The board index to which the pawn will move</param>
+        /// <param name="newSquareOccupied">Indicated whether the new square is occupied</param>
+        /// <param name="pieceColor">The color of the pawn.</param>
+        /// <param name="capturedPieceType">The piece that is captured during the move, if any</param>
+        /// <returns></returns>
         private static List<int> EncodePawnMoves(int fromBoardIndex, int toBoardIndex, bool newSquareOccupied,
             Color pieceColor, Type capturedPieceType)
         {
@@ -75,14 +85,14 @@ namespace sChakert.Chessboard
             if (kindOfMove >= 8)
             {
                 // Promotion move
-                pawnMoves.Add(CreateMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Knight));
-                pawnMoves.Add(CreateMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Bishop));
-                pawnMoves.Add(CreateMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Rook));
-                pawnMoves.Add(CreateMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Queen));
+                pawnMoves.Add(EncodeMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Knight));
+                pawnMoves.Add(EncodeMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Bishop));
+                pawnMoves.Add(EncodeMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Rook));
+                pawnMoves.Add(EncodeMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType, Type.Queen));
                 return pawnMoves;
             }
             // Only one move
-            pawnMoves.Add(CreateMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType));
+            pawnMoves.Add(EncodeMove(kindOfMove, fromBoardIndex, toBoardIndex, capturedPieceType));
             return pawnMoves;
         }
 
@@ -95,7 +105,7 @@ namespace sChakert.Chessboard
         /// <param name="typeOfCapturedPiece"></param>
         /// <param name="typeToPromoteInto"></param>
         /// <returns></returns>
-        public static int CreateMove(int kindOfMove, int fromSquare, int toSquare, Type typeOfCapturedPiece = 0,
+        public static int EncodeMove(int kindOfMove, int fromSquare, int toSquare, Type typeOfCapturedPiece = 0,
             Type typeToPromoteInto = 0)
         {
             var move = 0;
@@ -107,8 +117,14 @@ namespace sChakert.Chessboard
             return move;
         }
 
+
+        /// <summary>
+        /// Apply a given mode.
+        /// </summary>
+        /// <param name="encodedMove">The encoded move</param>
         public static void DoMove(int encodedMove)
         {
+            // Decode the move
         }
     }
 }

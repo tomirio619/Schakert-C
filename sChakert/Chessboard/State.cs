@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace sChakert.Chessboard
 {
-    internal static class StateManager
+    public static class StateManager
     {
         /// <summary>
-        /// Stack of states containing the castling availability and check status for both kings as integers.
+        /// Stack of states (represented as an integer) containing the castling availability, check status for both kings 
+        /// and whether kings and rooks have moved.
         /// </summary>
-        private static readonly Stack<int> CastlingNCheckStack = new Stack<int>();
+        public static readonly Stack<int> GeneralInfoStack = new Stack<int>();
 
         /// <summary>
         /// Stack of enPassant square values. The enPassant square is represented as a board index (integer) 
         /// </summary>
-        private static readonly Stack<int> EnPassantPositionsStack = new Stack<int>();
+        public static readonly Stack<int> EnPassantPositionStack = new Stack<int>();
 
         /// <summary>
         /// Indicates whether the white king is in check (1) or not (0)
@@ -78,9 +82,9 @@ namespace sChakert.Chessboard
             curState |= BlackKingHasMoved << pos++;
             curState |= BlackRookQueenSideHasMoved << pos++;
             curState |= BlackRookKingSideHasMoved << pos;
-            CastlingNCheckStack.Push(curState);
+            GeneralInfoStack.Push(curState);
             // SaveCurrentState enPassant square
-            EnPassantPositionsStack.Push(EnPassantPos);
+            EnPassantPositionStack.Push(EnPassantPos);
         }
 
         /// <summary>
@@ -90,7 +94,7 @@ namespace sChakert.Chessboard
         /// </summary>
         public static void RestorePreviousState()
         {
-            var previousState = CastlingNCheckStack.Pop();
+            var previousState = GeneralInfoStack.Pop();
             var previousStateBinString = Utilities.SystemIsLittleEndian
                 ? Utilities.Reverse(Convert.ToString(previousState, 2)).PadRight(8, '0')
                 : Convert.ToString(previousState, 2).PadRight(8, '0');
@@ -100,7 +104,7 @@ namespace sChakert.Chessboard
             /*
              Restore king castling availability + check status for both kings.
              This is done by converting the state (popped from the stack and represented as an integer)
-             to a bitstring (padded to a lenght of 8 with zeros.
+             to a bitstring (padded to a lenght of 8 with zeros).
              This bitstring is used to retrieve the original int values as chars.
              These are converted to integers by subtracting the char '0' from the value.
              */
@@ -113,7 +117,19 @@ namespace sChakert.Chessboard
             BlackRookQueenSideHasMoved = previousStateBinString[pos++] - '0';
             BlackRookKingSideHasMoved = previousStateBinString[pos] - '0';
             // Restore current value of the enPassant square
-            EnPassantPos = EnPassantPositionsStack.Pop();
+            EnPassantPos = EnPassantPositionStack.Pop();
+        }
+
+        public static string GetState()
+        {
+            var str = new StringBuilder();
+            var fields = typeof(StateManager).GetFields(BindingFlags.Public | BindingFlags.Static);
+            // We sort the values on descending name
+            var alphabeticallySortedFields = fields.Where(x => x.FieldType == typeof(int))
+                .OrderByDescending(x => x.Name).Reverse();
+            foreach (var field in alphabeticallySortedFields)
+                str.Append(field.Name).Append("\t").Append((int) field.GetValue(null)).Append("\n");
+            return str.ToString();
         }
     }
 }

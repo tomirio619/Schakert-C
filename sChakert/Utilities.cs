@@ -11,6 +11,7 @@ namespace sChakert
         /// File constants
         /// </summary>
         public const int FileA = 0;
+
         public const int FileB = 1;
         public const int FileC = 2;
         public const int FileD = 3;
