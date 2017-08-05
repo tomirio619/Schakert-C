@@ -58,7 +58,7 @@
     <Compile Include="Magic\MagicGenerator.cs" />
     <Compile Include="MoveGeneration\AttackBitboard.cs" />
     <Compile Include="Utilities.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Schakert.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

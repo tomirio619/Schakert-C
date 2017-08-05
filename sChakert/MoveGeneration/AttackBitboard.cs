@@ -50,9 +50,9 @@ namespace sChakert.MoveGeneration
         /// <param name="blackPawns">Bitboard representing the black pawns.</param>
         /// <param name="emptySquares">Bitboard representing the empty squares.</param>
         /// <returns>Bitboard representing all the double push moves for the black pawns.</returns>
-        public static ulong BlackPawnsDoublePushMoves(ulong blackPawns, ulong emptySquares)
+        public static ulong BlackPawnDoublePushMoves(ulong blackPawns, ulong emptySquares)
         {
-            var singlePushs = BlackPawnsSinglePushMoves(blackPawns, emptySquares);
+            var singlePushs = BlackPawnSinglePushMoves(blackPawns, emptySquares);
             return SouthOne(singlePushs) & Rank5 & emptySquares;
         }
 
@@ -62,9 +62,65 @@ namespace sChakert.MoveGeneration
         /// <param name="blackPawns">Bitboard representing the white pawns.</param>
         /// <param name="emptySquares">Bitboard representing the empty squares.</param>
         /// <returns>Bitboard representing all the single push moves for the black pawns.</returns>
-        public static ulong BlackPawnsSinglePushMoves(ulong blackPawns, ulong emptySquares)
+        public static ulong BlackPawnSinglePushMoves(ulong blackPawns, ulong emptySquares)
         {
             return SouthOne(blackPawns) & emptySquares;
+        }
+
+        /// <summary>
+        /// Get the capture moves of all the black pawns.
+        /// </summary>
+        /// <param name="blackPawns"></param>
+        /// <param name="emptySquares"></param>
+        /// <param name="friendlyPieces"></param>
+        /// <returns></returns>
+        public static ulong BlackPawnCaptureMoves(ulong blackPawns, ulong emptySquares, ulong friendlyPieces)
+        {
+            return (SouthEastOne(blackPawns) | SouthWestOne(blackPawns)) & ~emptySquares & ~friendlyPieces;
+        }
+        
+        /// <summary>
+        /// Get the capture moves of all the white pawns.
+        /// </summary>
+        /// <param name="whitePawns"></param>
+        /// <param name="emptySquares"></param>
+        /// <param name="friendlyPieces"></param>
+        /// <returns></returns>
+        public static ulong WhitePawnCaptureMoves(ulong whitePawns, ulong emptySquares, ulong friendlyPieces)
+        {
+            return (NorthEastOne(whitePawns) | NorthWestOne(whitePawns)) & ~emptySquares & ~friendlyPieces;
+        }
+
+        /// <summary>
+        /// Get the En Passant move of the black pawns
+        /// </summary>
+        /// <param name="blackPawns"></param>
+        /// <param name="emptySquares"></param>
+        /// <param name="EnPassantPos"></param>
+        /// <returns></returns>
+        public static ulong BlackPawnEnPassantMove(ulong blackPawns, ulong emptySquares, int EnPassantPos)
+        {
+            if (EnPassantPos > 8 && EnPassantPos < 24)
+            {
+                return (SouthEastOne(blackPawns) | SouthWestOne(blackPawns)) & emptySquares & (1UL << EnPassantPos);
+            }
+            return 0UL;
+        }
+        
+        /// <summary>
+        /// Get the En Passant move of the white pawns.
+        /// </summary>
+        /// <param name="whitePawns"></param>
+        /// <param name="emptySquares"></param>
+        /// <param name="enPassantPos"></param>
+        /// <returns></returns>
+        public static ulong WhitePawnEnPassantMove(ulong whitePawns, ulong emptySquares, int enPassantPos)
+        {
+            if (enPassantPos > 32 && enPassantPos < 48)
+            {
+                return (NorthEastOne(whitePawns) | NorthWestOne(whitePawns)) & emptySquares & (1UL << enPassantPos);
+            }
+            return 0UL;
         }
 
         private static ulong EastOne(ulong bitboard)
@@ -227,9 +283,9 @@ namespace sChakert.MoveGeneration
         /// <param name="whitePawns">Bitboard representing the white pawns.</param>
         /// <param name="emptySquares">Bitboard representing the empty squares.</param>
         /// <returns>Bitboard representing all the double push moves for the white pawns.</returns>
-        public static ulong WhitePawnsDoublePushMoves(ulong whitePawns, ulong emptySquares)
+        public static ulong WhitePawnDoublePushMoves(ulong whitePawns, ulong emptySquares)
         {
-            var singlePushs = WhitePawnsSinglePushMoves(whitePawns, emptySquares);
+            var singlePushs = WhitePawnSinglePushMoves(whitePawns, emptySquares);
             return NorthOne(singlePushs) & Rank4 & emptySquares;
         }
 
@@ -239,7 +295,7 @@ namespace sChakert.MoveGeneration
         /// <param name="whitePawns">Bitboard representing the white pawns.</param>
         /// <param name="emptySquares">Bitboard representing the empty squares</param>
         /// <returns>Bitboard representing all the single push moves for the white pawns.</returns>
-        public static ulong WhitePawnsSinglePushMoves(ulong whitePawns, ulong emptySquares)
+        public static ulong WhitePawnSinglePushMoves(ulong whitePawns, ulong emptySquares)
         {
             return NorthOne(whitePawns) & emptySquares;
         }

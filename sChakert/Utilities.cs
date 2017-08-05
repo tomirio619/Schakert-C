@@ -243,8 +243,7 @@ namespace sChakert
             for (var i = 0; i < 64; i++)
                 if (((1UL << i) & bitboard) > 0)
                     boardString[i] = '1';
-            // The bits are returned in the reversed order. Therefore we return the reversed string.
-            return SystemIsLittleEndian ? Reverse(boardString.ToString()) : boardString.ToString();
+            return boardString.ToString();
         }
 
         /// <summary>

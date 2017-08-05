@@ -1,22 +1,20 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using sChakert.Chessboard;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using NUnit.Framework;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace sChakert.Chessboard.Tests
 {
-    [TestClass()]
+    [TestFixture]
     public class StateManagerTests
     {
         // For generating random numbers
         private Random rand = new Random();
 
-        [TestMethod()]
+        [Test]
         public void SaveCurrentStateTest()
         {
             StateManager.SaveCurrentState();
@@ -24,7 +22,7 @@ namespace sChakert.Chessboard.Tests
             StateManager.RestorePreviousState();
         }
 
-        [TestMethod()]
+        [Test]
         public void RestorePreviousStateTest()
         {
             // Randomize the state
@@ -62,7 +60,7 @@ namespace sChakert.Chessboard.Tests
                 .OrderByDescending(x => x.Name).Reverse();
             foreach (var field in alphabeticallySortedFields)
             {
-                Debug.WriteLine(field.Name + " " + (int)field.GetValue(null));
+                Debug.WriteLine(field.Name + " " + (int) field.GetValue(null));
                 currentValues.Push((int) field.GetValue(null));
             }
             return currentValues;

@@ -11,9 +11,11 @@ namespace sChakert
         private static void Main(string[] args)
         {
             MagicGenerator.Init();
-            var rookMoves = AttackBitboard.GetSlidingMoves(2048, 134235144, 0, true);
-            var board = Utilities.ToChessBoard(rookMoves);
+            var pawnMoves = AttackBitboard.BlackPawnEnPassantMove(67108864, 524288, 19);
+            var board = Utilities.ToChessBoard(pawnMoves);
             Console.WriteLine("The board is:\n" + board);
+            
+            
 #if DEBUG
             Console.WriteLine("Press enter to close...");
             Console.ReadLine();

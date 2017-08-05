@@ -79,6 +79,11 @@ namespace sChakert.Chessboard
         /// </summary>
         public const int BlackPieces = 13;
 
+        /// <summary>
+        ///     Index of bitboard representing the empty squares
+        /// </summary>
+        public const int EmptySquares = 14;
+
 
         /// <summary>
         /// Constructor
@@ -101,7 +106,8 @@ namespace sChakert.Chessboard
                 0x800000000000000, // Black queens
                 0x1000000000000000, // Black king
                 0xffff, // White Pieces
-                0xffff000000000000 // Black Pieces
+                0xffff000000000000, // Black Pieces
+                0xffffffff0000
             };
         }
 
