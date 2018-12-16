@@ -127,7 +127,7 @@ namespace sChakert.Chessboard
         /// <returns>A tuple containing: a bool indicating if the position was occupied,
         /// the color and the type of the chess piece one the specified board index 
         /// (both are none when the position was not occupied).</returns>
-        public Tuple<bool, Color, Type> GetPieceTypeAndColour(int boardIndex)
+        public int GetPieceTypeAndColour(int boardIndex)
         {
             var bitboardPos = 1UL << boardIndex;
             for (var i = 0; i < 12; i++)
@@ -135,12 +135,17 @@ namespace sChakert.Chessboard
                 {
                     // if index of bitboard is greater than 6, this was a black piece.
                     // Otherwise, this is a white piece
-                    var color = i > 6 ? Color.Black : Color.White;
+//                    var color = i > 6 ? Color.Black : Color.White;
+                    var color = i > 6 ? 0 : 1;
+                    var occupied = 1;
                     // Bitboard index % 6 is the same as the int value of the enum of piece types.
-                    return new Tuple<bool, Color, Type>(true, color, (Type) (i%6));
+                    var result = i % 6;
+                    result = (result << 1) | color;
+                    result = (result << 1) | occupied;
+                    return result;
                 }
             // empty
-            return new Tuple<bool, Color, Type>(false, Color.None, Type.None);
+            return -1;
         }
 
         /// <summary>

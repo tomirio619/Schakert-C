@@ -49,8 +49,9 @@ Kind of move
                     case 6:
                         moves.AddRange(GetPawnMoves(activeBitsIndices, chessBoard));
                         break;
-                    default:
-                        throw new IndexOutOfRangeException();
+//                    default:
+//                        throw new IndexOutOfRangeException();
+
                 }
             }
 
@@ -82,7 +83,7 @@ Kind of move
                 if (pieceColor == Color.Black)
                 {
                     moveBitboard = AttackBitboard.BlackPawnSinglePushMoves(pawnPos, emptySquares);
-                    moveBitboard |= AttackBitboard.BlackPawnSinglePushMoves(pawnPos, emptySquares);
+                    moveBitboard |= AttackBitboard.BlackPawnDoublePushMoves(pawnPos, emptySquares);
                     moveBitboard |= AttackBitboard.BlackPawnCaptureMoves(pawnPos, emptySquares, blackPieces);
                     moveBitboard |=
                         AttackBitboard.BlackPawnEnPassantMove(pawnPos, emptySquares, StateManager.EnPassantPos);
@@ -90,7 +91,7 @@ Kind of move
                 else
                 {
                     moveBitboard = AttackBitboard.WhitePawnSinglePushMoves(pawnPos, emptySquares);
-                    moveBitboard |= AttackBitboard.WhitePawnSinglePushMoves(pawnPos, emptySquares);
+                    moveBitboard |= AttackBitboard.WhitePawnDoublePushMoves(pawnPos, emptySquares);
                     moveBitboard |= AttackBitboard.WhitePawnCaptureMoves(pawnPos, emptySquares, whitePieces);
                     moveBitboard |=
                         AttackBitboard.WhitePawnEnPassantMove(pawnPos, emptySquares, StateManager.EnPassantPos);
@@ -99,9 +100,15 @@ Kind of move
                 // Loop through every pawn dest square, encode and store the move
                 foreach (var toBoardIndex in pawnToBoardIndices)
                 {
+                    
                     var newSquareInfo = chessBoard.GetPieceTypeAndColour(toBoardIndex);
-                    var newSquareOccupied = newSquareInfo.Item1;
-                    var capturedPieceType = newSquareInfo.Item3;
+                    var newSquareOccupied = false;
+                    var capturedPieceType = Type.None;
+                    if (newSquareInfo > -1)
+                    {
+                        newSquareOccupied = Convert.ToBoolean(newSquareInfo & 1);
+                        capturedPieceType = (Type) ((newSquareInfo & 0x1c) >> 3);
+                    }
                     moves.AddRange(EncodePawnMove(fromBoardIndex, toBoardIndex, newSquareOccupied, pieceColor,
                         capturedPieceType));
                 }
@@ -118,7 +125,7 @@ Kind of move
         /// <param name="pieceColor">The color of the pawn.</param>
         /// <param name="capturedPieceType">The piece that is captured during the move, if any</param>
         /// <returns></returns>
-        private static List<int> EncodePawnMove(int fromBoardIndex, int toBoardIndex, bool newSquareOccupied,
+        private static IEnumerable<int> EncodePawnMove(int fromBoardIndex, int toBoardIndex, bool newSquareOccupied,
             Color pieceColor, Type capturedPieceType)
         {
             var kindOfMove = 0;

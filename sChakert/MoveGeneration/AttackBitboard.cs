@@ -215,8 +215,8 @@ namespace sChakert.MoveGeneration
             var magicIndex = (attackVariation*magicNumber) >> (64 - bitCountAttackSet.Count);
             // Return the moveset AND-ed with the negation of the friendly pieces.
             return isRook
-                ? MagicGenerator.RookLookupTable[boardIndex, magicIndex] & ~friendlyPieces
-                : MagicGenerator.BishopLookupTable[boardIndex, magicIndex] & ~friendlyPieces;
+                ? MagicGenerator.RookLookupTable[boardIndex, (int) magicIndex] & ~friendlyPieces
+                : MagicGenerator.BishopLookupTable[boardIndex, (int) magicIndex] & ~friendlyPieces;
         }
 
         private static ulong NorthEastOne(ulong bitboard)

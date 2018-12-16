@@ -384,7 +384,7 @@ namespace sChakert.Magic
         /// <returns>The possible moves given of the rook given the attack variation and the board index</returns>
         private static ulong GetRookPossibleMoves(ulong attackVariation, int boardIndex)
         {
-            var moves = 0UL;
+            ulong moves = 0UL;
             int i;
             for (i = boardIndex + 8; i < 64; i += 8)
             {
@@ -457,9 +457,9 @@ namespace sChakert.Magic
                         ? GetRookPossibleMoves(attackVariation, boardIndex)
                         : GetBishopPossibleMoves(attackVariation, boardIndex);
                     if (isRook)
-                        RookLookupTable[boardIndex, magicIndex] = moves;
+                        RookLookupTable[boardIndex, (int) magicIndex] = moves;
                     else
-                        BishopLookupTable[boardIndex, magicIndex] = moves;
+                        BishopLookupTable[boardIndex, (int) magicIndex] = moves;
                 }
             }
         }

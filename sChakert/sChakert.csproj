@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Chessboard\Chessboard.cs" />
     <Compile Include="Chessboard\Color.cs" />
+    <Compile Include="Chessboard\FENparser.cs" />
     <Compile Include="Chessboard\Move.cs" />
     <Compile Include="Chessboard\State.cs" />
     <Compile Include="Chessboard\Type.cs" />

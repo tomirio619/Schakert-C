@@ -28,10 +28,12 @@ namespace sChakert
         {
             PrintLogo();
             Console.Title = "Schakert";
+            var chessBoard = new Chessboard.Chessboard();
             MagicGenerator.Init();
             var pawnMoves = AttackBitboard.BlackPawnEnPassantMove(67108864, 524288, 19);
             var board = Utilities.ToChessBoard(pawnMoves);
             Console.WriteLine("The board is:\n" + board);
+            Console.WriteLine("Pawn moves are as follows:\n" + Move.GetMoves(chessBoard));
 
 
 #if DEBUG
